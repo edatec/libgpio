@@ -11,17 +11,17 @@ For futher reading, take a look at [Documentation/gpio/sysfs.txt](https://git.ke
 
 # Usage
 ```sh
-    echo "Usage: $0 get <chip name/number> <offset 1> <offset 2> ..."
-    echo "Read line value(s) from a GPIO chip."
-    echo 
-    echo "Usage: $0 set <chip name/number> <offset1>=<value1> <offset2>=<value2> ..."
-    echo "Set GPIO line values of a GPIO chip."
-    echo 
-    echo "Usage: $0 find <name>"
-    echo "Find a GPIO line by name."
-    echo 
-    echo "Uasge: $0 help"
-    echo "Display this help and exit."
+    Usage: ./gpio.sh get <chip name/number> <offset 1> <offset 2> ...
+    Read line value(s) from a GPIO chip.
+
+    Usage: ./gpio.sh set <chip name/number> <offset1>=<value1> <offset2>=<value2> ...
+    Set GPIO line values of a GPIO chip.
+
+    Usage: ./gpio.sh find <name>
+    Find a GPIO line by name.
+
+    Uasge: ./gpio.sh help
+    Display this help and exit.
 ```
 
 # Compatibility

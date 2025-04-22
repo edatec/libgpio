@@ -9,6 +9,21 @@ the sysfs user interface"*
 
 For futher reading, take a look at [Documentation/gpio/sysfs.txt](https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git/tree/Documentation/gpio/sysfs.txt?h=v4.4.164) (v4.4).
 
+# Usage
+```sh
+    echo "Usage: $0 get <chip name/number> <offset 1> <offset 2> ..."
+    echo "Read line value(s) from a GPIO chip."
+    echo 
+    echo "Usage: $0 set <chip name/number> <offset1>=<value1> <offset2>=<value2> ..."
+    echo "Set GPIO line values of a GPIO chip."
+    echo 
+    echo "Usage: $0 find <name>"
+    echo "Find a GPIO line by name."
+    echo 
+    echo "Uasge: $0 help"
+    echo "Display this help and exit."
+```
+
 # Compatibility
 
 - [x] *libgpio* works for Linux kernels from v4.1.x to v4.7.x.

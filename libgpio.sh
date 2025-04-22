@@ -19,6 +19,12 @@ unset -f gpio_set_value         >/dev/null 2>&1
 
 GPIO_SYS="/sys/class/gpio"
 
+die()
+{
+    echo "$*"
+    exit 1
+}
+
 is_positive_integer()
 {
     local _val="$1"
@@ -28,6 +34,20 @@ is_positive_integer()
         return 1
     fi
 
+    return 0
+}
+
+gpio_gpiochip_update()
+{
+    local _gpiochip_n="$1"
+
+    if ls /dev/gpiochip${_gpiochip_n} > /dev/null;then
+        gpio=$(ls -d /sys/class/gpio/gpiochip*/device/gpiochip0)
+        echo "$gpio" | sed -n 's|/sys/class/gpio/gpiochip\([0-9]*\).*|\1|p'
+        return 0
+    fi
+
+    echo $_gpiochip_n
     return 0
 }
 
@@ -226,8 +246,6 @@ gpio_set_property()
     gpio_gpiochip_isset || return 3
     gpio_exported "$_gpio_id" || return 1
 
-    echo c
-
     gpio_n=$((GPIOCHIP_N + _gpio_id))
 
     if ! echo "$_val" > "${GPIO_SYS}/gpio${gpio_n}/${_property}" 2>/dev/null
@@ -278,3 +296,97 @@ gpio_set_value()
 {
     gpio_set_property "$1" "value" "$2"
 }
+
+set_gpio()
+{
+    local _gpiochip_n=$1
+    local _gpio_id=$2
+    local _gpio_value=$3
+
+    gpio_select_gpiochip ${_gpiochip_n}
+    gpio_gpiochip_isset || return $?
+
+    gpio_exported $_gpio_id
+    if [ $? -ne 0 ];then
+        gpio_export $_gpio_id || return $?
+    fi
+    
+    gpio_direction_output $_gpio_id
+    gpio_set_value $_gpio_id $_gpio_value
+}
+
+get_gpio()
+{
+    local _gpiochip_n=$1
+    local _gpio_id=$2
+
+    gpio_select_gpiochip ${_gpiochip_n}
+    gpio_gpiochip_isset || return $?
+
+    gpio_exported $_gpio_id
+    if [ $? -ne 0 ];then
+        gpio_export $_gpio_id || return $?
+    fi
+    
+    gpio_get_value $_gpio_id
+}
+
+find_gpio()
+{
+    local _gpio_name=$1
+    which gpiofind > /dev/null
+    if [ $? -eq 0 ];then
+        gpiofind "$_gpio_name"
+    else
+        cat /sys/kernel/debug/gpio | grep "$_gpio_name"
+    fi
+}
+
+usage()
+{
+    echo "Usage: $0 get <chip name/number> <offset 1> <offset 2> ..."
+    echo "Read line value(s) from a GPIO chip."
+    echo 
+    echo "Usage: $0 set <chip name/number> <offset1>=<value1> <offset2>=<value2> ..."
+    echo "Set GPIO line values of a GPIO chip."
+    echo 
+    echo "Usage: $0 find <name>"
+    echo "Find a GPIO line by name."
+    echo 
+    echo "Uasge: $0 help"
+    echo "Display this help and exit."
+}
+
+main()
+{
+    local opt=$1
+    
+    case "${opt}" in 
+        set|get)
+            local gpiochip=$(gpio_gpiochip_update $2)
+            if [ "${opt}" = set ];then
+                local set_values="${@:3}"
+                for set_value in ${set_values[@]};do
+                    local gpio_id=${set_value%%=*}
+                    local gpio_value=${set_value#*=}
+                    set_gpio ${gpiochip} ${gpio_id} ${gpio_value}
+                done
+            else
+                # get
+                local gpio_ids="${@:3}"
+                for gpio_id in ${gpio_ids[@]};do
+                    get_gpio ${gpiochip} ${gpio_id}
+                done
+            fi
+            ;;
+        find)
+            local gpio_name=$2
+            find_gpio "$gpio_name"
+            ;;
+        help|*)
+            usage
+            ;;
+    esac
+}
+
+main $*

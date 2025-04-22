@@ -41,14 +41,16 @@ gpio_gpiochip_update()
 {
     local _gpiochip_n="$1"
 
+    _gpiochip_n=$(echo $_gpiochip_n | sed "s/gpiochip//")
+
     if ls /dev/gpiochip${_gpiochip_n} > /dev/null;then
-        gpio=$(ls -d /sys/class/gpio/gpiochip*/device/gpiochip0)
+        gpio=$(ls -d /sys/class/gpio/gpiochip*/device/gpiochip${_gpiochip_n})
         echo "$gpio" | sed -n 's|/sys/class/gpio/gpiochip\([0-9]*\).*|\1|p'
         return 0
+    else
+        echo $_gpiochip_n
+        return 0
     fi
-
-    echo $_gpiochip_n
-    return 0
 }
 
 gpio_select_gpiochip()
